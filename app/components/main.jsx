@@ -4,12 +4,19 @@ const Table = require('./table');
 const re = require('recompose');
 
 /* the main page for the index route of this app */
-const Main = ({cards, boards, fetchCards, members, password, boardId, setBoardId, setPassword, fetchMembers, selectedMembers, setSelectedMembers}) => {
+const Main = ({cards, boards, setCards, setMembers, fetchCards, members, password, boardId, setBoardId, setPassword, fetchMembers, selectedMembers, setSelectedMembers}) => {
   return (
     <React.Fragment>
       <h1>Trello Repeat Analyzer!</h1>
-      <Form fetchCards={fetchCards} selectedMembers={selectedMembers} setSelectedMembers={setSelectedMembers} fetchMembers={fetchMembers} members={members} boards={boards} password={password} boardId={boardId} setBoardId={setBoardId} setPassword={setPassword}  />
+      <Form setMembers={setMembers} setCards={setCards} fetchCards={fetchCards} selectedMembers={selectedMembers} setSelectedMembers={setSelectedMembers} fetchMembers={fetchMembers} members={members} boards={boards} password={password} boardId={boardId} setBoardId={setBoardId} setPassword={setPassword}  />
       <Table cards={cards} />
+      <div>
+        Known issues
+        <ul>
+          <li>Have to edit code for new projects (idList in .env, and customFieldMapping of 🔁/⏳ in sever.js</li>
+          <li>Have to select and unselect all users to get cards without any assigned members</li>
+        </ul>
+      </div>
     </React.Fragment>
   );
 }
@@ -34,7 +41,7 @@ const enhance = re.compose(
   re.withState('password', 'setPassword', ''),
   re.withState('members', 'setMembers', []),
   re.withState('selectedMembers', 'setSelectedMembers', []),
-  re.withState('cards', 'setCards', [1, 2, 3]),
+  re.withState('cards', 'setCards', []),
     
   // TODO: See if these handlers can be moved into Form component?
   // TODO: * Then see if more can
@@ -54,7 +61,6 @@ const enhance = re.compose(
         .catch(responseWithError => responseWithError.text().then(errMsg => alert(`Bad server response: ${errMsg}`)))
     },
     fetchCards: ({password, boardId, setCards}) => (selectedMembers) => {
-      console.warn('fetchCards', selectedMembers);
       const body = JSON.stringify({password, boardId, selectedMembers});
       const headers= {"Content-Type": "application/json"};
       const method = 'post';

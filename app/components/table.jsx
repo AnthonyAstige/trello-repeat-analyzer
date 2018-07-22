@@ -1,4 +1,7 @@
+const re = require('recompose');
 const React = require('react');
+
+const fixed = (x) => Number.parseFloat(x).toFixed(2);
 
 const Rows = ({cards}) =>
   <React.Fragment>
@@ -6,13 +9,13 @@ const Rows = ({cards}) =>
       <tr>
         <td>{card.name}</td>
         <td>{card['⏳']}</td>
-        <td>{card.annualOccurrences} ({card['🔁']})</td>
-        <td>{card.hoursPerYear}</td>
+        <td>{fixed(card.annualOccurrences)} ({card['🔁']})</td>
+        <td>{fixed(card.hoursPerYear)}</td>
       </tr>
     )}
   </React.Fragment>
 
-const Table = ({cards}) => {
+const Table = ({cards, totalHoursPerYear, totalAnnualOccurrences}) => {
   return (
       <table>
         <thead>
@@ -30,12 +33,20 @@ const Table = ({cards}) => {
           <tr>
             <td>Total</td>
             <td>N/A</td>
-            <td>-</td>
-            <td>-</td>
+            <td>{fixed(totalAnnualOccurrences)}</td>
+            <td>{fixed(totalHoursPerYear)}</td>
           </tr>
         </tfoot>
       </table>
   );
 }
 
-module.exports = Table;
+const enhance = re.compose(
+  re.mapProps(({cards}) => ({
+    cards: [...cards].sort((a, b) => b.hoursPerYear - a.hoursPerYear),
+    totalHoursPerYear: cards.reduce((acc, curr) => acc + curr.hoursPerYear, 0),
+    totalAnnualOccurrences: cards.reduce((acc, curr) => acc + curr.hoursPerYear, 0)
+  }))
+);
+
+module.exports = enhance(Table);

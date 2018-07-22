@@ -1,5 +1,5 @@
 // server.js
-const {PASSWORD, TRELLO_KEY, TRELLO_TOKEN} = process.env;
+const {PASSWORD, TRELLO_KEY, TRELLO_TOKEN, TRELLO_PROCESS_LISTS_IDS} = process.env;
 
 // Setup Trello API connection
 const Trello = require("node-trello");
@@ -46,44 +46,53 @@ app.post("/cards.json", function(request, response) {
   if (request.body.password !== PASSWORD) {
     return response.status(400).send("WRONG PASSWORD");
   }
-  console.warn('/cards.json');
-  console.warn(request.body);
+  // TODO: Abstract these id's as this is only the Astige project
+  // TODO: Put into .env
+  const customFieldMapping = {
+    // AST: Astige
+    '5ab8f5a28d3ddde1fa45f3c2': '🔁',
+    '5ab8f55a09c74796cda187b0': '⏳',
+    // BI: Focus
+    '5abc607cba0c02a9de8dc1cc': '🔁',
+    '5abc6063bf5fce517bcf1862': '⏳'
+  };
+  const extractCustomFieldValue = (customFieldItems, customFieldKey) => {
+    console.warn(customFieldItems);
+    const found = customFieldItems.find(customFieldItem => customFieldKey === customFieldMapping[customFieldItem.idCustomField])
+    return found ? found.value.text || found.value.number : undefined;
+  }
   const sendBody = {
-    limit:200,
+    limit:2000,
     fields:'all',
-    //fields:'⏳,🔁,name',
     members:true,
     member_fields:'fullName',
     customFieldItems:true
   };
-  const customFieldMapping = {
-    '🔁': {
-      id: '5ab8f5a28d3ddde1fa45f3c2',
-      type: 'text'
-    },
-    '⏳': {
-      id: '5ab8f55a09c74796cda187b0',
-      type: 'number'
-    }
-  };
-  const extractCustomFieldValue = (customFieldItems, customFieldKey) => {
-    const found = customFieldItems.find(item => (customFieldMapping[customFieldKey] && customFieldMapping[customFieldKey].id) === item.idCustomField);
-    return found ? found.value[customFieldMapping[customFieldKey].type] : undefined;
-  }
   t.get(`/1/boards/${request.body.boardId}/cards/open`, sendBody, (err, data) => {
     if (err) throw err;
     const flatCards = data.map(data => {
       const flatCard = {
         name: data.name,
         memberIds: data.members.map(member => member.id),
+        idList: data.idList,
         '🔁': extractCustomFieldValue(data.customFieldItems, '🔁'),
         '⏳': extractCustomFieldValue(data.customFieldItems, '⏳'),
       };
       return flatCard;
     });
+
+    // TODO: Put these in .env variables and document -- AST:Astige & BI:Focus
+    const processListIds = TRELLO_PROCESS_LISTS_IDS.split(',');
+    const isRepeatingAndEstimated = card => card['🔁'] && card['⏳'];
+    const inProcessList = card => processListIds.includes(card.idList);
+    const hasASelectedMember = card => card.memberIds.some(memberId => request.body.selectedMembers.includes(memberId));
+    const hasNoMembers = (card) => card.memberIds.length === 0;
     
-    const repeatingEstimatedFlatCards = flatCards.filter(card => card['🔁'] && card['⏳']);
-    response.send(repeatingEstimatedFlatCards);
+    const filteredFlatCards = flatCards
+      .filter(isRepeatingAndEstimated)
+      .filter(inProcessList)
+      .filter(request.body.selectedMembers.length ? hasASelectedMember : hasNoMembers);
+    response.send(filteredFlatCards);
   })
 });
 

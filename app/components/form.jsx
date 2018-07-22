@@ -55,9 +55,11 @@ const enhance = re.compose(
     let boardRef = null;
     return {
       onBoardRef: () => (ref) => boardRef = ref,
-      onChangeBoard: ({setBoardId, fetchMembers}) => () => {
+      onChangeBoard: ({setBoardId, fetchMembers, setMembers, setCards}) => () => {
         const boardId = boardRef.value;
         setBoardId(boardId);
+        setMembers([]);
+        setCards([]);
         fetchMembers(boardId);
       }
     }
@@ -68,10 +70,11 @@ const enhance = re.compose(
     let selectedMembersRef = null;
     return {
       onSelectedMembersContainerRef: () => (ref) => selectedMembersRef = ref,
-      onChangeSelectedMember: ({setSelectedMembers, fetchCards}) => () => {
+      onChangeSelectedMember: ({setCards, setSelectedMembers, fetchCards}) => () => {
         const checkedInputBoxesNodeList = selectedMembersRef.querySelectorAll('input:checked');
         const selectedMemberIds = [...checkedInputBoxesNodeList].map(input => input.value);
         setSelectedMembers(selectedMemberIds);
+        setCards([]);
         fetchCards(selectedMemberIds);
       }
     };
