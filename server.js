@@ -1,14 +1,22 @@
-// server.js
-const {PASSWORD, TRELLO_KEY, TRELLO_TOKEN, TRELLO_PROCESS_LISTS_IDS} = process.env;
-
-// Setup Trello API connection
 const Trello = require("node-trello");
-const t = new Trello(TRELLO_KEY, TRELLO_TOKEN);
+const express = require('express');
+const bodyParser = require('body-parser');
 
-// init project
-var express = require('express');
-var bodyParser = require('body-parser');
-var app = express();
+const {PASSWORD, TRELLO_KEY, TRELLO_TOKEN, TRELLO_PROCESS_LISTS_IDS, TRELLO_CUSTOM_FIELD_REPEAT_IDS, TRELLO_CUSTOM_FIELD_ESTIMATE_IDS} = process.env;
+const t = new Trello(TRELLO_KEY, TRELLO_TOKEN);
+const app = express();
+
+// protocol check, if http, redirect to https
+// https://support.glitch.com/t/solved-auto-redirect-http-https/2392
+const forceHttps = (req, res, next) => {
+   if (req.get('X-Forwarded-Proto').indexOf("https") === -1) {
+    res.redirect('https://' + req.hostname + req.url);
+    return;
+  }
+  next();
+};
+app.all('*', forceHttps);
+
 // app.use(bodyParser.urlencoded({ extended: true })); // for parsing application/x-www-form-urlencoded
 app.use(bodyParser.json()); // for parsing application/json
 
@@ -18,11 +26,6 @@ app.use(express.static('public'));
 // http://expressjs.com/en/starter/basic-routing.html
 app.get("/", function(request, response) {
   response.sendFile(__dirname + '/app/index.html');
-});
-
-// listen for requests :)
-var listener = app.listen(process.env.PORT, function () {
-  console.log('Your app is listening on port ' + listener.address().port);
 });
 
 app.get("/boards.json", function(request, response) {
@@ -42,20 +45,14 @@ app.post("/members.json", function(request, response) {
   });
 });
 
+const customFieldMapping = {};
+TRELLO_CUSTOM_FIELD_REPEAT_IDS.split(',').forEach(id => customFieldMapping[id] = '🔁');
+TRELLO_CUSTOM_FIELD_ESTIMATE_IDS.split(',').forEach(id => customFieldMapping[id] = '⏳');
+
 app.post("/cards.json", function(request, response) {
   if (request.body.password !== PASSWORD) {
     return response.status(400).send("WRONG PASSWORD");
   }
-  // TODO: Abstract these id's as this is only the Astige project
-  // TODO: Put into .env
-  const customFieldMapping = {
-    // AST: Astige
-    '5ab8f5a28d3ddde1fa45f3c2': '🔁',
-    '5ab8f55a09c74796cda187b0': '⏳',
-    // BI: Focus
-    '5abc607cba0c02a9de8dc1cc': '🔁',
-    '5abc6063bf5fce517bcf1862': '⏳'
-  };
   const extractCustomFieldValue = (customFieldItems, customFieldKey) => {
     const found = customFieldItems.find(customFieldItem => customFieldKey === customFieldMapping[customFieldItem.idCustomField])
     return found ? found.value.text || found.value.number : undefined;
@@ -80,7 +77,6 @@ app.post("/cards.json", function(request, response) {
       return flatCard;
     });
 
-    // TODO: Put these in .env variables and document -- AST:Astige & BI:Focus
     const processListIds = TRELLO_PROCESS_LISTS_IDS.split(',');
     const isRepeatingAndEstimated = card => card['🔁'] && card['⏳'];
     const inProcessList = card => processListIds.includes(card.idList);
@@ -95,6 +91,10 @@ app.post("/cards.json", function(request, response) {
   })
 });
 
+// listen for requests :)
+var listener = app.listen(process.env.PORT, function () {
+  console.log('Your app is listening on port ' + listener.address().port);
+});
 
 /*
 *Get cards on Astige board (permuted later)*

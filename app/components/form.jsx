@@ -8,8 +8,8 @@ const BoardOptions = ({boards}) =>
     )}
   </React.Fragment>
 
-const Members = ({members, onChangeSelectedMember}) =>
-  <React.Fragment>
+const Members = ({members, onChangeSelectedMember, onSelectedMembersContainerRef}) =>
+  <div ref={onSelectedMembersContainerRef}>
     {members.map(member => 
       <div className="member">
           <input id={`member-input-${member.id}`} value={member.id} type="checkbox"
@@ -17,7 +17,7 @@ const Members = ({members, onChangeSelectedMember}) =>
           <label for={`member-input-${member.id}`}>{member.fullName} ({member.username})</label>
       </div>
     )}
-  </React.Fragment>
+  </div>
 
 const Form = ({password, onSelectedMembersContainerRef, onChangeSelectedMember, members, onPasswordRef, onChangePassword, boardId, boards, onBoardRef, onChangeBoard, onSelectMember}) => {
   return (
@@ -32,9 +32,7 @@ const Form = ({password, onSelectedMembersContainerRef, onChangeSelectedMember, 
         </select>
 
         <label>Members</label>
-        <div ref={onSelectedMembersContainerRef}>
-          <Members members={members} onChangeSelectedMember={onChangeSelectedMember} />
-        </div>
+        <Members onSelectedMembersContainerRef={onSelectedMembersContainerRef} members={members} onChangeSelectedMember={onChangeSelectedMember} />
       </form>
   );
 }
@@ -54,11 +52,12 @@ const calculateAnnualOccurrences = (card) => {
 }
 
 const enhance = re.compose(
+  re.withState('password', 'setPassword', ''),
   re.withState('boards', 'setBoards', []),
   re.withState('boardId', 'setBoardId'),
-  re.withState('password', 'setPassword', ''),
   re.withState('members', 'setMembers', []),
   re.withState('selectedMembers', 'setSelectedMembers', []),
+
   re.lifecycle({
     componentDidMount() {
       fetch('/boards.json')
@@ -82,7 +81,6 @@ const enhance = re.compose(
         .then((members) => setMembers(members))
         .catch(responseWithError => responseWithError.text().then(errMsg => alert(`Bad server response: ${errMsg}`)))
     },
-
     fetchCards: ({password, boardId, setCards}) => (selectedMembers) => {
       const body = JSON.stringify({password, boardId, selectedMembers});
       const headers= {"Content-Type": "application/json"};
@@ -114,7 +112,6 @@ const enhance = re.compose(
   // Password
   re.withHandlers(() => {
     let passwordRef = null;
-
     return {
       onPasswordRef: () => (ref) => passwordRef = ref,
       onChangePassword: ({setPassword}) => () => setPassword(passwordRef.value)

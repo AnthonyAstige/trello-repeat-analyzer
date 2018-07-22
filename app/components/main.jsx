@@ -13,8 +13,8 @@ const Main = ({cards, setCards}) => {
       <div>
         <h2>Known issues</h2>
         <ul>
-          <li>Have to edit code for new projects (idList in .env, and customFieldMapping of 🔁/⏳ in sever.js)</li>
-          <li>Have to select and unselect all users to get cards without any assigned members</li>
+          <li>Must edit code for each new project (See .env)</li>
+          <li>Must select and unselect all users to get cards without any assigned members</li>
         </ul>
       </div>
     </React.Fragment>
