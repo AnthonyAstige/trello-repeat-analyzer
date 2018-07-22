@@ -67,12 +67,14 @@ app.post("/cards.json", function(request, response) {
   t.get(`/1/boards/${request.body.boardId}/cards/open`, sendBody, (err, data) => {
     if (err) throw err;
     const flatCards = data.map(data => {
+      // console.log(data);
       const flatCard = {
         name: data.name,
         memberIds: data.members.map(member => member.id),
         idList: data.idList,
+        url: data.url,
         '🔁': extractCustomFieldValue(data.customFieldItems, '🔁'),
-        '⏳': extractCustomFieldValue(data.customFieldItems, '⏳'),
+        '⏳': extractCustomFieldValue(data.customFieldItems, '⏳')
       };
       return flatCard;
     });

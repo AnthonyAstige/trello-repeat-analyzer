@@ -18,7 +18,7 @@ const TableBody = ({cards}) =>
   <tbody>
     {cards.map(card =>
       <tr>
-        <td>{card.name}</td>
+        <td><a href={card.url} target="_blank">{card.name}</a></td>
         <td>{fixed(card['⏳'], 2)}</td>
         <td>{fixed(card.annualOccurrences, 0)} ({card['🔁']})</td>
         <td>{fixed(card.hoursPerYear, 1)}</td>
