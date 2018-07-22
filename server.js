@@ -57,7 +57,6 @@ app.post("/cards.json", function(request, response) {
     '5abc6063bf5fce517bcf1862': '⏳'
   };
   const extractCustomFieldValue = (customFieldItems, customFieldKey) => {
-    console.warn(customFieldItems);
     const found = customFieldItems.find(customFieldItem => customFieldKey === customFieldMapping[customFieldItem.idCustomField])
     return found ? found.value.text || found.value.number : undefined;
   }
@@ -101,7 +100,7 @@ app.post("/cards.json", function(request, response) {
 *Get cards on Astige board (permuted later)*
 https://api.trello.com/1/boards/NzgVa7UE/cards/?limit=2&fields=⏳,🔁,name&members=true&member_fields=fullName&key=97d532c0601e9d936cd3331d5aa96a80&token=ab5bcf9f9781696cc8372205d45a5b94377dfa09540008ec5bff925e4e02ac4f
 
-*Custom fields on Astige board (don't need)*
+*Custom fields on Astige board (Could use maybe to avoid configuration)*
 https://api.trello.com/1/boards/NzgVa7UE/customFields?&key=97d532c0601e9d936cd3331d5aa96a80&token=ab5bcf9f9781696cc8372205d45a5b94377dfa09540008ec5bff925e4e02ac4f
 
 *With Custom Fields (the only API call we need I think)*

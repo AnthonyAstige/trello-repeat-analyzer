@@ -7,13 +7,13 @@ const re = require('recompose');
 const Main = ({cards, setBoards, boards, setCards, setMembers, fetchCards, members, password, boardId, setBoardId, setPassword, fetchMembers, selectedMembers, setSelectedMembers}) => {
   return (
     <React.Fragment>
-      <h1>Trello Repeat Analyzer!</h1>
+      <h1>Trello Repeat Analyzer</h1>
       <Form setBoards={setBoards} setMembers={setMembers} setCards={setCards} fetchCards={fetchCards} selectedMembers={selectedMembers} setSelectedMembers={setSelectedMembers} fetchMembers={fetchMembers} members={members} boards={boards} password={password} boardId={boardId} setBoardId={setBoardId} setPassword={setPassword}  />
       <Table cards={cards} />
       <div>
-        Known issues
+        <h2>Known issues</h2>
         <ul>
-          <li>Have to edit code for new projects (idList in .env, and customFieldMapping of 🔁/⏳ in sever.js</li>
+          <li>Have to edit code for new projects (idList in .env, and customFieldMapping of 🔁/⏳ in sever.js)</li>
           <li>Have to select and unselect all users to get cards without any assigned members</li>
         </ul>
       </div>

@@ -21,7 +21,7 @@ const Table = ({cards, totalHoursPerYear, totalAnnualOccurrences}) => {
         <thead>
           <tr>
             <td>Card Title</td>
-            <td>Estimate (⏳)</td>
+            <td>⏳ Estimate</td>
             <td>Annual Occurences (🔁)</td>
             <td>Hours/Year \/</td>
           </tr>
