@@ -54,7 +54,12 @@ const calculateAnnualOccurrences = (card) => {
 }
 
 const enhance = re.compose(
-    re.lifecycle({
+  re.withState('boards', 'setBoards', []),
+  re.withState('boardId', 'setBoardId'),
+  re.withState('password', 'setPassword', ''),
+  re.withState('members', 'setMembers', []),
+  re.withState('selectedMembers', 'setSelectedMembers', []),
+  re.lifecycle({
     componentDidMount() {
       fetch('/boards.json')
         .then((response) => response.json())
