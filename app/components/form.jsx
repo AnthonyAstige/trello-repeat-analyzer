@@ -39,7 +39,73 @@ const Form = ({password, onSelectedMembersContainerRef, onChangeSelectedMember, 
   );
 }
 
+const calculateAnnualOccurrences = (card) => {
+  var myRegexp = /([0-9\.]+)([dwmy])/g;
+  var match = myRegexp.exec(card['🔁']);
+  const occurencesPerPeriod = match[1];
+  const period = match[2];
+  const periodsPerYearMapping = {
+    d: 365.25,
+    w: 52.1429,
+    m: 12,
+    y: 1
+  }
+  return periodsPerYearMapping[period] / occurencesPerPeriod;
+}
+
 const enhance = re.compose(
+    re.lifecycle({
+    componentDidMount() {
+      fetch('/boards.json')
+        .then((response) => response.json())
+        .then((boards) => this.props.setBoards(boards));
+      }
+  }),
+  
+  re.withHandlers({
+    fetchMembers: ({password, setMembers}) => (boardId) => {
+      const body = JSON.stringify({password, boardId});
+      const headers= {"Content-Type": "application/json"};
+      const method = 'post';
+      fetch('/members.json',  {body, headers, method})
+        .then((response) => {
+          if (response.status == 200) {
+            return response.json();
+          }
+          throw response;
+        })
+        .then((members) => setMembers(members))
+        .catch(responseWithError => responseWithError.text().then(errMsg => alert(`Bad server response: ${errMsg}`)))
+    },
+
+    fetchCards: ({password, boardId, setCards}) => (selectedMembers) => {
+      const body = JSON.stringify({password, boardId, selectedMembers});
+      const headers= {"Content-Type": "application/json"};
+      const method = 'post';
+      fetch('/cards.json',  {body, headers, method})
+        .then((response) => {
+          if (response.status == 200) {
+            return response.json();
+          }
+          throw response;
+        })
+        .then((cards) => {
+          const cardsWithDerivativeFields = cards.map(card => {
+            const annualOccurrences = calculateAnnualOccurrences(card);
+            const hoursPerYear = annualOccurrences * card['⏳'];
+            const newCard = {
+              annualOccurrences,
+              hoursPerYear,
+              ...card
+            }
+            return newCard;
+          });
+          setCards(cardsWithDerivativeFields);
+        })
+        .catch(responseWithError => responseWithError.text().then(errMsg => alert(`Bad server response: ${errMsg}`)))
+    }
+  }),
+  
   // Password
   re.withHandlers(() => {
     let passwordRef = null;
